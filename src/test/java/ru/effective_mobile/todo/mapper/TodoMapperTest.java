@@ -1,5 +1,6 @@
 package ru.effective_mobile.todo.mapper;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.dto.TodoDto;
@@ -17,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class TodoMapperTest {
 
     @Test
-    void testEntityToDto() {
+    @DisplayName("Маппинг сущности в дто")
+    void test_entityToDto() {
         Todo todo = Todo.builder()
                 .id(1L)
                 .createdAt(LocalDate.now())
@@ -46,7 +48,8 @@ class TodoMapperTest {
     }
 
     @Test
-    void testDtoToEntity() {
+    @DisplayName("Маппинг дто в сущность")
+    void test_dtoToEntity() {
         CreateOrUpdateDto dto = new CreateOrUpdateDto("New description");
 
         Todo expected = Todo.builder()

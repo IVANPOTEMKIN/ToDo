@@ -1,9 +1,7 @@
 package ru.effective_mobile.todo.service;
 
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -29,7 +27,6 @@ import static org.mockito.Mockito.*;
 import static ru.effective_mobile.todo.Utils.*;
 
 @ExtendWith(MockitoExtension.class)
-@TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
 class TodoServiceTest {
 
     @Mock
@@ -39,8 +36,8 @@ class TodoServiceTest {
     private TodoServiceImpl todoService;
 
     @Test
-    @Order(1)
-    void testGetAll() {
+    @DisplayName("Получение всех задач")
+    void test_getAll() {
         PaginatedResponse<TodoDto> expected = getAll();
 
         when(todoRepository.findAll(1, 3))
@@ -55,8 +52,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(2)
-    void testGetAllByFilters_option1() {
+    @DisplayName("Получение всех задач по набору параметров №1")
+    void test_getAllByFilters_option1() {
         PaginatedResponse<TodoDto> expected = getAllByFiltersOption1();
 
         when(todoRepository.findAllByFilters(
@@ -89,8 +86,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(3)
-    void testGetAllByFilters_option2() {
+    @DisplayName("Получение всех задач по набору параметров №2")
+    void test_getAllByFilters_option2() {
         PaginatedResponse<TodoDto> expected = getAllByFiltersOption2();
 
         when(todoRepository.findAllByFilters(
@@ -123,8 +120,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(4)
-    void testGetAllByFilters_option3() {
+    @DisplayName("Получение всех задач по набору параметров №3")
+    void test_getAllByFilters_option3() {
         PaginatedResponse<TodoDto> expected = getAllByFiltersOption3();
 
         when(todoRepository.findAllByFilters(
@@ -157,8 +154,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(5)
-    void testGetAllByFilters_option4() {
+    @DisplayName("Получение всех задач по набору параметров №4")
+    void test_getAllByFilters_option4() {
         PaginatedResponse<TodoDto> expected = getAllByFiltersOption4();
 
         when(todoRepository.findAllByFilters(
@@ -191,8 +188,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(6)
-    void testGetAllByFilters_option5() {
+    @DisplayName("Получение всех задач по набору параметров №5")
+    void test_getAllByFilters_option5() {
         PaginatedResponse<TodoDto> expected = getAllByFiltersOption5();
 
         when(todoRepository.findAllByFilters(
@@ -225,8 +222,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(7)
-    void testGetById_success() {
+    @DisplayName("Получение задачи по её ID - успешно")
+    void test_getById_success() {
         TodoDto expected = getById();
 
         when(todoRepository.findById(anyLong()))
@@ -241,8 +238,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(8)
-    void testGetById_exception() {
+    @DisplayName("Получение задачи по её ID - ошибка")
+    void test_getById_exception() {
         assertThrows(TodoNotFoundException.class,
                 () -> todoService.getById(anyLong()));
 
@@ -251,8 +248,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(9)
-    void testCreate() {
+    @DisplayName("Создание новой задачи")
+    void test_create() {
         CreateOrUpdateDto newTodo = new CreateOrUpdateDto("Test description");
 
         todoService.create(
@@ -268,34 +265,34 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(10)
-    void testUpdateDescription_success() {
+    @DisplayName("Изменение описания задачи по её ID - успешно")
+    void test_updateDescription_success() {
         CreateOrUpdateDto newTodo = new CreateOrUpdateDto("Test description");
 
         when(todoRepository.findById(anyLong()))
                 .thenReturn(findById());
 
-        todoService.updateDescription(10, newTodo);
+        todoService.updateDescription(1, newTodo);
 
         verify(todoRepository, times(1))
                 .update(any(Todo.class));
     }
 
     @Test
-    @Order(11)
-    void testUpdateDescription_exception() {
+    @DisplayName("Изменение описания задачи по её ID - ошибка")
+    void test_updateDescription_exception() {
         CreateOrUpdateDto newTodo = new CreateOrUpdateDto("Test description");
 
         assertThrows(TodoNotFoundException.class,
-                () -> todoService.updateDescription(10, newTodo));
+                () -> todoService.updateDescription(1, newTodo));
 
         verify(todoRepository, times(0))
                 .update(any(Todo.class));
     }
 
     @Test
-    @Order(12)
-    void testUpdateFilters() {
+    @DisplayName("Изменение параметров задачи по её ID - успешно")
+    void test_updateFilters_success() {
         when(todoRepository.findById(anyLong()))
                 .thenReturn(findById());
 
@@ -312,8 +309,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(13)
-    void testUpdateFilters_exception() {
+    @DisplayName("Изменение параметров задачи по её ID - ошибка")
+    void test_updateFilters_exception() {
         assertThrows(TodoNotFoundException.class,
                 () -> todoService.updateFilters(
                         10,
@@ -328,30 +325,30 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(14)
-    void testDelete() {
+    @DisplayName("Удаление задачи по её ID - успешно")
+    void test_delete_success() {
         when(todoRepository.findById(anyLong()))
                 .thenReturn(findById());
 
-        todoService.deleteById(10);
+        todoService.deleteById(1);
 
         verify(todoRepository, times(1))
                 .delete(any(Todo.class));
     }
 
     @Test
-    @Order(15)
-    void testDelete_exception() {
+    @DisplayName("Удаление задачи по её ID - ошибка")
+    void test_delete_exception() {
         assertThrows(TodoNotFoundException.class,
-                () -> todoService.deleteById(10));
+                () -> todoService.deleteById(1));
 
         verify(todoRepository, times(0))
                 .delete(any(Todo.class));
     }
 
     @Test
-    @Order(16)
-    void testDeleteAll() {
+    @DisplayName("Удаление всех задач")
+    void test_deleteAll() {
         todoService.deleteAll();
 
         verify(todoRepository, times(1))
@@ -359,8 +356,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(17)
-    void testDeleteAllByFilters_option1() {
+    @DisplayName("Удаление всех задач по набору параметров №1")
+    void test_deleteAllByFilters_option1() {
         todoService.deleteAllByFilters(Title.OTHER, Status.COMPLETED);
 
         verify(todoRepository, times(1))
@@ -368,8 +365,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(18)
-    void testDeleteAllByFilters_option2() {
+    @DisplayName("Удаление всех задач по набору параметров №2")
+    void test_deleteAllByFilters_option2() {
         todoService.deleteAllByFilters(Title.OTHER, null);
 
         verify(todoRepository, times(1))
@@ -377,8 +374,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @Order(19)
-    void testDeleteAllByFilters_option3() {
+    @DisplayName("Удаление всех задач по набору параметров №3")
+    void test_deleteAllByFilters_option3() {
         todoService.deleteAllByFilters(null, Status.COMPLETED);
 
         verify(todoRepository, times(1))

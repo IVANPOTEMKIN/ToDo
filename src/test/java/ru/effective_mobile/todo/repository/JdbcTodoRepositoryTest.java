@@ -1,13 +1,12 @@
 package ru.effective_mobile.todo.repository;
 
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -24,7 +23,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.effective_mobile.todo.Utils.*;
 
-@TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -32,14 +30,15 @@ class JdbcTodoRepositoryTest {
 
     @Container
     @ServiceConnection
-    public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:16.2");
+    public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
     private TodoRepository todoRepository;
 
     @Test
-    @Order(1)
-    void testFindAll() {
+    @DisplayName("Получение всех элементов")
+    @Transactional
+    void test_findAll() {
         PaginatedResponse<Todo> expected = findAll();
         PaginatedResponse<Todo> actual = todoRepository.findAll(1, 3);
 
@@ -47,8 +46,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(2)
-    void testFindAllByFilters_option1() {
+    @DisplayName("Получение всех элементов по набору параметров №1")
+    @Transactional
+    void test_findAllByFilters_option1() {
         PaginatedResponse<Todo> expected = findAllByFiltersOption1();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 null,
@@ -62,8 +62,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(3)
-    void testFindAllByFilters_option2() {
+    @DisplayName("Получение всех элементов по набору параметров №2")
+    @Transactional
+    void test_findAllByFilters_option2() {
         PaginatedResponse<Todo> expected = findAllByFiltersOption2();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -77,8 +78,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(4)
-    void testFindAllByFilters_option3() {
+    @DisplayName("Получение всех элементов по набору параметров №3")
+    @Transactional
+    void test_findAllByFilters_option3() {
         PaginatedResponse<Todo> expected = findAllByFiltersOption3();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -92,8 +94,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(5)
-    void testFindAllByFilters_option4() {
+    @DisplayName("Получение всех элементов по набору параметров №4")
+    @Transactional
+    void test_findAllByFilters_option4() {
         PaginatedResponse<Todo> expected = findAllByFiltersOption4();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -107,8 +110,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(6)
-    void testFindAllByFilters_option5() {
+    @DisplayName("Получение всех элементов по набору параметров №5")
+    @Transactional
+    void test_findAllByFilters_option5() {
         PaginatedResponse<Todo> expected = findAllByFiltersOption5();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -122,8 +126,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(7)
-    void testFindById() {
+    @DisplayName("Получение элемента по его ID")
+    @Transactional
+    void test_findById() {
         Optional<Todo> expected = findById();
         Optional<Todo> actual = todoRepository.findById(10);
 
@@ -131,8 +136,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(8)
-    void testSave() {
+    @DisplayName("Сохранение нового элемента")
+    @Transactional
+    void test_save() {
         Todo newTodo = Todo.builder().description("Test description").build();
         Todo saved = getSavedTodo();
 
@@ -153,8 +159,9 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(9)
-    void testUpdate() {
+    @DisplayName("Изменение элемента")
+    @Transactional
+    void test_update() {
         Optional<Todo> expectedOld = getOldTodo();
         Optional<Todo> expectedNew = getNewTodo();
         Optional<Todo> actual = todoRepository.findById(10);
@@ -175,13 +182,14 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(10)
-    void testDelete() {
+    @DisplayName("Удаление элемента")
+    @Transactional
+    void test_delete() {
         Optional<Todo> todo = todoRepository.findById(1);
         int actual = todoRepository.findAll(1, 20).getTotalElements();
 
         assertTrue(todo.isPresent());
-        assertEquals(16, actual);
+        assertEquals(15, actual);
 
         todoRepository.delete(todo.get());
 
@@ -189,12 +197,26 @@ class JdbcTodoRepositoryTest {
         actual = todoRepository.findAll(1, 20).getTotalElements();
 
         assertFalse(todo.isPresent());
-        assertEquals(15, actual);
+        assertEquals(14, actual);
     }
 
     @Test
-    @Order(11)
-    void testDeleteAllByFilters_option1() {
+    @DisplayName("Удаление всех элементов")
+    @Transactional
+    void test_deleteAll() {
+        int actual = todoRepository.findAll(1, 20).getTotalElements();
+        assertEquals(15, actual);
+
+        todoRepository.deleteAll();
+
+        actual = todoRepository.findAll(1, 20).getTotalElements();
+        assertEquals(0, actual);
+    }
+
+    @Test
+    @DisplayName("Удаление всех элементов по набору параметров №1")
+    @Transactional
+    void test_deleteAllByFilters_option1() {
         int actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(15, actual);
 
@@ -205,38 +227,28 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @Order(12)
-    void testDeleteAllByFilters_option2() {
+    @DisplayName("Удаление всех элементов по набору параметров №2")
+    @Transactional
+    void test_deleteAllByFilters_option2() {
         int actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(14, actual);
+        assertEquals(15, actual);
 
         todoRepository.deleteAllByFilters(Title.OTHER, null);
 
         actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(11, actual);
+        assertEquals(12, actual);
     }
 
     @Test
-    @Order(13)
-    void testDeleteAllByFilters_option3() {
+    @DisplayName("Удаление всех элементов по набору параметров №3")
+    @Transactional
+    void test_deleteAllByFilters_option3() {
         int actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(11, actual);
+        assertEquals(15, actual);
 
         todoRepository.deleteAllByFilters(null, Status.COMPLETED);
 
         actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(9, actual);
-    }
-
-    @Test
-    @Order(14)
-    void testDeleteAll() {
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(9, actual);
-
-        todoRepository.deleteAll();
-
-        actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(0, actual);
+        assertEquals(12, actual);
     }
 }
