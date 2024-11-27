@@ -22,7 +22,7 @@ import ru.effective_mobile.todo.model.enums.Importance;
 import ru.effective_mobile.todo.model.enums.Status;
 import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
-import ru.effective_mobile.todo.repository.JdbcTodoRepository;
+import ru.effective_mobile.todo.repository.HibernateTodoRepository;
 import ru.effective_mobile.todo.service.impl.TodoServiceImpl;
 
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ public class TodoControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private JdbcTodoRepository todoRepository;
+    private HibernateTodoRepository todoRepository;
 
     @MockBean
     private PlatformTransactionManager transactionManager;
@@ -99,12 +99,12 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №1 - успешно")
-    void test_getAllByFilters_success_option1() throws Exception {
+    @DisplayName("Получение всех задач без фильтров")
+    void test_getAllByFilters_withoutFilters_success() throws Exception {
         when(todoRepository.findAllByFilters(null, null, null, null, null, 1, 3))
-                .thenReturn(Utils.findAllByFiltersOption1());
+                .thenReturn(Utils.findAll());
 
-        String response = objectMapper.writeValueAsString(Utils.getAllByFiltersOption1());
+        String response = objectMapper.writeValueAsString(Utils.getAll());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -117,12 +117,12 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №2 - успешно")
-    void test_getAllByFilters_success_option2() throws Exception {
+    @DisplayName("Получение всех задач по title")
+    void test_getAllByFilters_withTitle_success() throws Exception {
         when(todoRepository.findAllByFilters(Title.STUDY, null, null, null, null, 1, 3))
-                .thenReturn(Utils.findAllByFiltersOption2());
+                .thenReturn(Utils.findAllByTitle());
 
-        String response = objectMapper.writeValueAsString(Utils.getAllByFiltersOption2());
+        String response = objectMapper.writeValueAsString(Utils.getAllByTitle());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -136,12 +136,12 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №3 - успешно")
-    void test_getAllByFilters_success_option3() throws Exception {
+    @DisplayName("Получение всех задач по title, importance")
+    void test_getAllByFilters_withTitleAndImportance_success() throws Exception {
         when(todoRepository.findAllByFilters(Title.STUDY, Status.NEW, null, null, null, 1, 3))
-                .thenReturn(Utils.findAllByFiltersOption3());
+                .thenReturn(Utils.findAllByTitleAndImportance());
 
-        String response = objectMapper.writeValueAsString(Utils.getAllByFiltersOption3());
+        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportance());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -156,12 +156,12 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №4 - успешно")
-    void test_getAllByFilters_success_option4() throws Exception {
+    @DisplayName("Получение всех задач по title, importance, urgency")
+    void test_getAllByFilters_withTitleAndImportanceAndUrgency_success() throws Exception {
         when(todoRepository.findAllByFilters(Title.STUDY, Status.NEW, Importance.IMPORTANT, Urgency.URGENT, null, 1, 3))
-                .thenReturn(Utils.findAllByFiltersOption4());
+                .thenReturn(Utils.findAllByTitleAndImportanceAndUrgency());
 
-        String response = objectMapper.writeValueAsString(Utils.getAllByFiltersOption4());
+        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportanceAndUrgency());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -178,12 +178,12 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №5 - успешно")
-    void test_getAllByFilters_success_option5() throws Exception {
+    @DisplayName("Получение всех задач по title, importance, urgency, deadline")
+    void test_getAllByFilters_withTitleAndImportanceAndUrgencyAndDeadline_success() throws Exception {
         when(todoRepository.findAllByFilters(Title.STUDY, Status.IN_PROGRESS, Importance.IMPORTANT, Urgency.URGENT, LocalDate.now().plusDays(3), 1, 3))
-                .thenReturn(Utils.findAllByFiltersOption5());
+                .thenReturn(Utils.findAllByTitleAndImportanceAndUrgencyAndDeadline());
 
-        String response = objectMapper.writeValueAsString(Utils.getAllByFiltersOption5());
+        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportanceAndUrgencyAndDeadline());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -201,7 +201,7 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров - ошибка")
+    @DisplayName("Получение всех задач по фильтрам - ошибка")
     void test_getAllByFilters_exception() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -485,8 +485,16 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №1")
-    void test_deleteAllByFilters_option1() throws Exception {
+    @DisplayName("Удаление всех задач без фильтров")
+    void test_deleteAllByFilters_withoutFilters() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .delete("/todo/all/filters"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Удаление всех задач по title")
+    void test_deleteAllByFilters_withTitle() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/todo/all/filters")
                         .param("Заголовок", Title.OTHER.name()))
@@ -494,8 +502,8 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №2")
-    void test_deleteAllByFilters_option2() throws Exception {
+    @DisplayName("Удаление всех задач по status")
+    void test_deleteAllByFilters_withStatus() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/todo/all/filters")
                         .param("Статус", Status.COMPLETED.name()))
@@ -503,8 +511,8 @@ public class TodoControllerTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №3")
-    void test_deleteAllByFilters_option3() throws Exception {
+    @DisplayName("Удаление всех задач по title, status")
+    void test_deleteAllByFilters_withTitleAndStatus() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/todo/all/filters")
                         .param("Заголовок", Title.OTHER.name())

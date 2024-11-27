@@ -26,7 +26,7 @@ import static ru.effective_mobile.todo.Utils.*;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class JdbcTodoRepositoryTest {
+class HibernateTodoRepositoryTest {
 
     @Container
     @ServiceConnection
@@ -46,10 +46,10 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Получение всех элементов по набору параметров №1")
+    @DisplayName("Получение всех элементов без фильтров")
     @Transactional
-    void test_findAllByFilters_option1() {
-        PaginatedResponse<Todo> expected = findAllByFiltersOption1();
+    void test_findAllByFilters_withoutFilters() {
+        PaginatedResponse<Todo> expected = findAll();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 null,
                 null,
@@ -62,10 +62,10 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Получение всех элементов по набору параметров №2")
+    @DisplayName("Получение всех элементов по title")
     @Transactional
-    void test_findAllByFilters_option2() {
-        PaginatedResponse<Todo> expected = findAllByFiltersOption2();
+    void test_findAllByFilters_withTitle() {
+        PaginatedResponse<Todo> expected = findAllByTitle();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
                 null,
@@ -78,10 +78,10 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Получение всех элементов по набору параметров №3")
+    @DisplayName("Получение всех элементов по title, importance")
     @Transactional
-    void test_findAllByFilters_option3() {
-        PaginatedResponse<Todo> expected = findAllByFiltersOption3();
+    void test_findAllByFilters_withTitleAndImportance() {
+        PaginatedResponse<Todo> expected = findAllByTitleAndImportance();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
                 Status.NEW,
@@ -94,10 +94,10 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Получение всех элементов по набору параметров №4")
+    @DisplayName("Получение всех элементов по title, importance, urgency")
     @Transactional
-    void test_findAllByFilters_option4() {
-        PaginatedResponse<Todo> expected = findAllByFiltersOption4();
+    void test_findAllByFilters_withTitleAndImportanceAndUrgency() {
+        PaginatedResponse<Todo> expected = findAllByTitleAndImportanceAndUrgency();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
                 Status.NEW,
@@ -110,10 +110,10 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Получение всех элементов по набору параметров №5")
+    @DisplayName("Получение всех элементов по title, importance, urgency, deadline")
     @Transactional
-    void test_findAllByFilters_option5() {
-        PaginatedResponse<Todo> expected = findAllByFiltersOption5();
+    void test_findAllByFilters_withTitleAndImportanceAndUrgencyAndDeadline() {
+        PaginatedResponse<Todo> expected = findAllByTitleAndImportanceAndUrgencyAndDeadline();
         PaginatedResponse<Todo> actual = todoRepository.findAllByFilters(
                 Title.STUDY,
                 Status.NEW,
@@ -143,7 +143,7 @@ class JdbcTodoRepositoryTest {
         Todo saved = getSavedTodo();
 
         Optional<Todo> todo = todoRepository.findById(16);
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
 
         assertFalse(todo.isPresent());
         assertEquals(15, actual);
@@ -186,7 +186,7 @@ class JdbcTodoRepositoryTest {
     @Transactional
     void test_delete() {
         Optional<Todo> todo = todoRepository.findById(1);
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
 
         assertTrue(todo.isPresent());
         assertEquals(15, actual);
@@ -204,7 +204,7 @@ class JdbcTodoRepositoryTest {
     @DisplayName("Удаление всех элементов")
     @Transactional
     void test_deleteAll() {
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(15, actual);
 
         todoRepository.deleteAll();
@@ -214,23 +214,23 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Удаление всех элементов по набору параметров №1")
+    @DisplayName("Удаление всех элементов без фильтров")
     @Transactional
-    void test_deleteAllByFilters_option1() {
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+    void test_deleteAllByFilters_withoutFilters() {
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(15, actual);
 
-        todoRepository.deleteAllByFilters(Title.OTHER, Status.COMPLETED);
+        todoRepository.deleteAllByFilters(null, null);
 
         actual = todoRepository.findAll(1, 20).getTotalElements();
-        assertEquals(14, actual);
+        assertEquals(0, actual);
     }
 
     @Test
-    @DisplayName("Удаление всех элементов по набору параметров №2")
+    @DisplayName("Удаление всех элементов по title")
     @Transactional
-    void test_deleteAllByFilters_option2() {
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+    void test_deleteAllByFilters_withTitle() {
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(15, actual);
 
         todoRepository.deleteAllByFilters(Title.OTHER, null);
@@ -240,15 +240,28 @@ class JdbcTodoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Удаление всех элементов по набору параметров №3")
+    @DisplayName("Удаление всех элементов по status")
     @Transactional
-    void test_deleteAllByFilters_option3() {
-        int actual = todoRepository.findAll(1, 20).getTotalElements();
+    void test_deleteAllByFilters_withStatus() {
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(15, actual);
 
         todoRepository.deleteAllByFilters(null, Status.COMPLETED);
 
         actual = todoRepository.findAll(1, 20).getTotalElements();
         assertEquals(12, actual);
+    }
+
+    @Test
+    @DisplayName("Удаление всех элементов по title, status")
+    @Transactional
+    void test_deleteAllByFilters_withTitleAndStatus() {
+        long actual = todoRepository.findAll(1, 20).getTotalElements();
+        assertEquals(15, actual);
+
+        todoRepository.deleteAllByFilters(Title.OTHER, Status.COMPLETED);
+
+        actual = todoRepository.findAll(1, 20).getTotalElements();
+        assertEquals(14, actual);
     }
 }

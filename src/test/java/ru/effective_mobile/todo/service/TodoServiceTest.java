@@ -52,9 +52,9 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №1")
-    void test_getAllByFilters_option1() {
-        PaginatedResponse<TodoDto> expected = getAllByFiltersOption1();
+    @DisplayName("Получение всех задач без фильтров")
+    void test_getAllByFilters_withoutFilters() {
+        PaginatedResponse<TodoDto> expected = getAll();
 
         when(todoRepository.findAllByFilters(
                 null,
@@ -63,7 +63,7 @@ class TodoServiceTest {
                 null,
                 null,
                 1, 3))
-                .thenReturn(findAllByFiltersOption1());
+                .thenReturn(findAll());
 
         PaginatedResponse<TodoDto> actual = todoService.getAllByFilters(
                 null,
@@ -86,9 +86,9 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №2")
-    void test_getAllByFilters_option2() {
-        PaginatedResponse<TodoDto> expected = getAllByFiltersOption2();
+    @DisplayName("Получение всех задач по title")
+    void test_getAllByFilters_withTitle() {
+        PaginatedResponse<TodoDto> expected = getAllByTitle();
 
         when(todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -97,7 +97,7 @@ class TodoServiceTest {
                 null,
                 null,
                 1, 3))
-                .thenReturn(findAllByFiltersOption2());
+                .thenReturn(findAllByTitle());
 
         PaginatedResponse<TodoDto> actual = todoService.getAllByFilters(
                 Title.STUDY,
@@ -120,9 +120,9 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №3")
-    void test_getAllByFilters_option3() {
-        PaginatedResponse<TodoDto> expected = getAllByFiltersOption3();
+    @DisplayName("Получение всех задач по title, importance")
+    void test_getAllByFilters_withTitleAndImportance() {
+        PaginatedResponse<TodoDto> expected = getAllByTitleAndImportance();
 
         when(todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -131,7 +131,7 @@ class TodoServiceTest {
                 null,
                 null,
                 1, 3))
-                .thenReturn(findAllByFiltersOption3());
+                .thenReturn(findAllByTitleAndImportance());
 
         PaginatedResponse<TodoDto> actual = todoService.getAllByFilters(
                 Title.STUDY,
@@ -154,9 +154,9 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №4")
-    void test_getAllByFilters_option4() {
-        PaginatedResponse<TodoDto> expected = getAllByFiltersOption4();
+    @DisplayName("Получение всех задач по title, importance, urgency")
+    void test_getAllByFilters_withTitleAndImportanceAndUrgency() {
+        PaginatedResponse<TodoDto> expected = getAllByTitleAndImportanceAndUrgency();
 
         when(todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -165,7 +165,7 @@ class TodoServiceTest {
                 Urgency.URGENT,
                 null,
                 1, 3))
-                .thenReturn(findAllByFiltersOption4());
+                .thenReturn(findAllByTitleAndImportanceAndUrgency());
 
         PaginatedResponse<TodoDto> actual = todoService.getAllByFilters(
                 Title.STUDY,
@@ -188,9 +188,9 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Получение всех задач по набору параметров №5")
-    void test_getAllByFilters_option5() {
-        PaginatedResponse<TodoDto> expected = getAllByFiltersOption5();
+    @DisplayName("Получение всех задач по title, importance, urgency, deadline")
+    void test_getAllByFilters_withTitleAndImportanceAndUrgencyAndDeadline() {
+        PaginatedResponse<TodoDto> expected = getAllByTitleAndImportanceAndUrgencyAndDeadline();
 
         when(todoRepository.findAllByFilters(
                 Title.STUDY,
@@ -199,7 +199,7 @@ class TodoServiceTest {
                 Urgency.URGENT,
                 LocalDate.now().plusDays(3),
                 1, 3))
-                .thenReturn(findAllByFiltersOption5());
+                .thenReturn(findAllByTitleAndImportanceAndUrgencyAndDeadline());
 
         PaginatedResponse<TodoDto> actual = todoService.getAllByFilters(
                 Title.STUDY,
@@ -356,8 +356,17 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №1")
-    void test_deleteAllByFilters_option1() {
+    @DisplayName("Удаление всех задач без фильтров")
+    void test_deleteAllByFilters_withoutFilters() {
+        todoService.deleteAllByFilters(null, null);
+
+        verify(todoRepository, times(1))
+                .deleteAllByFilters(null, null);
+    }
+
+    @Test
+    @DisplayName("Удаление всех задач по title")
+    void test_deleteAllByFilters_withTitle() {
         todoService.deleteAllByFilters(Title.OTHER, Status.COMPLETED);
 
         verify(todoRepository, times(1))
@@ -365,8 +374,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №2")
-    void test_deleteAllByFilters_option2() {
+    @DisplayName("Удаление всех задач по status")
+    void test_deleteAllByFilters_withStatus() {
         todoService.deleteAllByFilters(Title.OTHER, null);
 
         verify(todoRepository, times(1))
@@ -374,8 +383,8 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("Удаление всех задач по набору параметров №3")
-    void test_deleteAllByFilters_option3() {
+    @DisplayName("Удаление всех задач по title, status")
+    void test_deleteAllByFilters_withTitleAndStatus() {
         todoService.deleteAllByFilters(null, Status.COMPLETED);
 
         verify(todoRepository, times(1))

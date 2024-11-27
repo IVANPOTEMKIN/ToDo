@@ -15,7 +15,8 @@ import java.util.Optional;
 public class Utils {
 
     public static PaginatedResponse<Todo> findAll() {
-        return new PaginatedResponse<>(List.of(Todo.builder()
+        return new PaginatedResponse<>(List.of(
+                Todo.builder()
                         .id(1L)
                         .createdAt(LocalDate.now())
                         .title(Title.STUDY)
@@ -48,16 +49,27 @@ public class Utils {
                 15, 1, 3);
     }
 
-    public static PaginatedResponse<Todo> findAllByFiltersOption1() {
-        return new PaginatedResponse<>(List.of(Todo.builder()
-                        .id(2L)
+    public static PaginatedResponse<Todo> findAllByTitle() {
+        return new PaginatedResponse<>(List.of(
+                Todo.builder()
+                        .id(1L)
                         .createdAt(LocalDate.now())
-                        .title(Title.OTHER)
+                        .title(Title.STUDY)
+                        .description("Выполнить задачу")
+                        .status(Status.NEW)
+                        .importance(Importance.IMPORTANT)
+                        .urgency(Urgency.URGENT)
+                        .deadline(LocalDate.now().plusWeeks(1))
+                        .build(),
+                Todo.builder()
+                        .id(4L)
+                        .createdAt(LocalDate.now())
+                        .title(Title.STUDY)
                         .description("Выполнить задачу")
                         .status(Status.IN_PROGRESS)
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.URGENT)
-                        .deadline(LocalDate.now().plusDays(3))
+                        .deadline(LocalDate.now().plusDays(12))
                         .build(),
                 Todo.builder()
                         .id(7L)
@@ -68,56 +80,23 @@ public class Utils {
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.NON_URGENT)
                         .deadline(LocalDate.now().plusDays(4))
-                        .build(),
-                Todo.builder()
-                        .id(8L)
-                        .createdAt(LocalDate.now())
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build()),
-                15, 1, 3);
-    }
-
-    public static PaginatedResponse<Todo> findAllByFiltersOption2() {
-        return new PaginatedResponse<>(List.of(Todo.builder()
-                        .id(7L)
-                        .createdAt(LocalDate.now())
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.COMPLETED)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build(),
-                Todo.builder()
-                        .id(8L)
-                        .createdAt(LocalDate.now())
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build(),
-                Todo.builder()
-                        .id(1L)
-                        .createdAt(LocalDate.now())
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.URGENT)
-                        .deadline(LocalDate.now().plusWeeks(1))
                         .build()),
                 4, 1, 3);
     }
 
-    public static PaginatedResponse<Todo> findAllByFiltersOption3() {
-        return new PaginatedResponse<>(List.of(Todo.builder()
+    public static PaginatedResponse<Todo> findAllByTitleAndImportance() {
+        return new PaginatedResponse<>(List.of(
+                Todo.builder()
+                        .id(1L)
+                        .createdAt(LocalDate.now())
+                        .title(Title.STUDY)
+                        .description("Выполнить задачу")
+                        .status(Status.NEW)
+                        .importance(Importance.IMPORTANT)
+                        .urgency(Urgency.URGENT)
+                        .deadline(LocalDate.now().plusWeeks(1))
+                        .build(),
+                Todo.builder()
                         .id(8L)
                         .createdAt(LocalDate.now())
                         .title(Title.STUDY)
@@ -126,7 +105,12 @@ public class Utils {
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.NON_URGENT)
                         .deadline(LocalDate.now().plusDays(4))
-                        .build(),
+                        .build()),
+                2, 1, 3);
+    }
+
+    public static PaginatedResponse<Todo> findAllByTitleAndImportanceAndUrgency() {
+        return new PaginatedResponse<>(List.of(
                 Todo.builder()
                         .id(1L)
                         .createdAt(LocalDate.now())
@@ -137,43 +121,30 @@ public class Utils {
                         .urgency(Urgency.URGENT)
                         .deadline(LocalDate.now().plusWeeks(1))
                         .build()),
-                2, 1, 3);
-    }
-
-    public static PaginatedResponse<Todo> findAllByFiltersOption4() {
-        return new PaginatedResponse<>(List.of(Todo.builder()
-                .id(1L)
-                .createdAt(LocalDate.now())
-                .title(Title.STUDY)
-                .description("Выполнить задачу")
-                .status(Status.NEW)
-                .importance(Importance.IMPORTANT)
-                .urgency(Urgency.URGENT)
-                .deadline(LocalDate.now().plusWeeks(1))
-                .build()),
                 1, 1, 3);
     }
 
-    public static PaginatedResponse<Todo> findAllByFiltersOption5() {
+    public static PaginatedResponse<Todo> findAllByTitleAndImportanceAndUrgencyAndDeadline() {
         return new PaginatedResponse<>(List.of(), 0, 1, 3);
     }
 
     public static Optional<Todo> findById() {
-        return Optional.of(Todo.builder()
-                .id(10)
-                .createdAt(LocalDate.now())
-                .title(Title.FRIENDS)
-                .description("Выполнить задачу")
-                .status(Status.NEW)
-                .importance(Importance.UNIMPORTANT)
-                .urgency(Urgency.NON_URGENT)
-                .deadline(LocalDate.now().plusDays(10))
-                .build());
+        return Optional.of(
+                Todo.builder()
+                        .id(10L)
+                        .createdAt(LocalDate.now())
+                        .title(Title.FRIENDS)
+                        .description("Выполнить задачу")
+                        .status(Status.NEW)
+                        .importance(Importance.UNIMPORTANT)
+                        .urgency(Urgency.NON_URGENT)
+                        .deadline(LocalDate.now().plusDays(10))
+                        .build());
     }
 
     public static Todo getSavedTodo() {
         return Todo.builder()
-                .id(16)
+                .id(16L)
                 .createdAt(LocalDate.now())
                 .title(Title.OTHER)
                 .description("Test description")
@@ -185,112 +156,67 @@ public class Utils {
     }
 
     public static Optional<Todo> getOldTodo() {
-        return Optional.of(Todo.builder()
-                .id(10)
-                .createdAt(LocalDate.now())
-                .title(Title.FRIENDS)
-                .description("Выполнить задачу")
-                .status(Status.NEW)
-                .importance(Importance.UNIMPORTANT)
-                .urgency(Urgency.NON_URGENT)
-                .deadline(LocalDate.now().plusDays(10))
-                .build());
-    }
-
-    public static Optional<Todo> getNewTodo() {
-        return Optional.of(Todo.builder()
-                .id(10)
-                .createdAt(LocalDate.now())
-                .title(Title.HOME)
-                .description("Выполнить новую задачу")
-                .status(Status.IN_PROGRESS)
-                .importance(Importance.IMPORTANT)
-                .urgency(Urgency.URGENT)
-                .deadline(LocalDate.now().plusDays(5))
-                .build());
-    }
-
-    public static PaginatedResponse<TodoDto> getAll() {
-        return new PaginatedResponse<>(List.of(TodoDto.builder()
-                        .id(1L)
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.URGENT)
-                        .deadline(LocalDate.now().plusWeeks(1))
-                        .build(),
-                TodoDto.builder()
-                        .id(2L)
-                        .title(Title.OTHER)
-                        .description("Выполнить задачу")
-                        .status(Status.IN_PROGRESS)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.URGENT)
-                        .deadline(LocalDate.now().plusDays(3))
-                        .build(),
-                TodoDto.builder()
-                        .id(3L)
-                        .title(Title.HOME)
+        return Optional.of(
+                Todo.builder()
+                        .id(10L)
+                        .createdAt(LocalDate.now())
+                        .title(Title.FRIENDS)
                         .description("Выполнить задачу")
                         .status(Status.NEW)
                         .importance(Importance.UNIMPORTANT)
-                        .urgency(Urgency.URGENT)
+                        .urgency(Urgency.NON_URGENT)
                         .deadline(LocalDate.now().plusDays(10))
-                        .build()),
-                15, 1, 3);
+                        .build());
     }
 
-    public static PaginatedResponse<TodoDto> getAllByFiltersOption1() {
-        return new PaginatedResponse<>(List.of(TodoDto.builder()
-                        .id(2L)
-                        .title(Title.OTHER)
-                        .description("Выполнить задачу")
+    public static Optional<Todo> getNewTodo() {
+        return Optional.of(
+                Todo.builder()
+                        .id(10L)
+                        .createdAt(LocalDate.now())
+                        .title(Title.HOME)
+                        .description("Выполнить новую задачу")
                         .status(Status.IN_PROGRESS)
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.URGENT)
-                        .deadline(LocalDate.now().plusDays(3))
-                        .build(),
-                TodoDto.builder()
-                        .id(7L)
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.COMPLETED)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build(),
-                TodoDto.builder()
-                        .id(8L)
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build()),
+                        .deadline(LocalDate.now().plusDays(5))
+                        .build());
+    }
+
+    public static PaginatedResponse<TodoDto> getAll() {
+        return new PaginatedResponse<>(
+                List.of(TodoDto.builder()
+                                .id(1L)
+                                .title(Title.STUDY)
+                                .description("Выполнить задачу")
+                                .status(Status.NEW)
+                                .importance(Importance.IMPORTANT)
+                                .urgency(Urgency.URGENT)
+                                .deadline(LocalDate.now().plusWeeks(1))
+                                .build(),
+                        TodoDto.builder()
+                                .id(2L)
+                                .title(Title.OTHER)
+                                .description("Выполнить задачу")
+                                .status(Status.IN_PROGRESS)
+                                .importance(Importance.IMPORTANT)
+                                .urgency(Urgency.URGENT)
+                                .deadline(LocalDate.now().plusDays(3))
+                                .build(),
+                        TodoDto.builder()
+                                .id(3L)
+                                .title(Title.HOME)
+                                .description("Выполнить задачу")
+                                .status(Status.NEW)
+                                .importance(Importance.UNIMPORTANT)
+                                .urgency(Urgency.URGENT)
+                                .deadline(LocalDate.now().plusDays(10))
+                                .build()),
                 15, 1, 3);
     }
 
-    public static PaginatedResponse<TodoDto> getAllByFiltersOption2() {
-        return new PaginatedResponse<>(List.of(TodoDto.builder()
-                        .id(7L)
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.COMPLETED)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build(),
-                TodoDto.builder()
-                        .id(8L)
-                        .title(Title.STUDY)
-                        .description("Выполнить задачу")
-                        .status(Status.NEW)
-                        .importance(Importance.IMPORTANT)
-                        .urgency(Urgency.NON_URGENT)
-                        .deadline(LocalDate.now().plusDays(4))
-                        .build(),
+    public static PaginatedResponse<TodoDto> getAllByTitle() {
+        return new PaginatedResponse<>(List.of(
                 TodoDto.builder()
                         .id(1L)
                         .title(Title.STUDY)
@@ -299,12 +225,40 @@ public class Utils {
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.URGENT)
                         .deadline(LocalDate.now().plusWeeks(1))
+                        .build(),
+                TodoDto.builder()
+                        .id(4L)
+                        .title(Title.STUDY)
+                        .description("Выполнить задачу")
+                        .status(Status.IN_PROGRESS)
+                        .importance(Importance.IMPORTANT)
+                        .urgency(Urgency.URGENT)
+                        .deadline(LocalDate.now().plusDays(12))
+                        .build(),
+                TodoDto.builder()
+                        .id(7L)
+                        .title(Title.STUDY)
+                        .description("Выполнить задачу")
+                        .status(Status.COMPLETED)
+                        .importance(Importance.IMPORTANT)
+                        .urgency(Urgency.NON_URGENT)
+                        .deadline(LocalDate.now().plusDays(4))
                         .build()),
                 4, 1, 3);
     }
 
-    public static PaginatedResponse<TodoDto> getAllByFiltersOption3() {
-        return new PaginatedResponse<>(List.of(TodoDto.builder()
+    public static PaginatedResponse<TodoDto> getAllByTitleAndImportance() {
+        return new PaginatedResponse<>(List.of(
+                TodoDto.builder()
+                        .id(1L)
+                        .title(Title.STUDY)
+                        .description("Выполнить задачу")
+                        .status(Status.NEW)
+                        .importance(Importance.IMPORTANT)
+                        .urgency(Urgency.URGENT)
+                        .deadline(LocalDate.now().plusWeeks(1))
+                        .build(),
+                TodoDto.builder()
                         .id(8L)
                         .title(Title.STUDY)
                         .description("Выполнить задачу")
@@ -312,7 +266,11 @@ public class Utils {
                         .importance(Importance.IMPORTANT)
                         .urgency(Urgency.NON_URGENT)
                         .deadline(LocalDate.now().plusDays(4))
-                        .build(),
+                        .build()), 2, 1, 3);
+    }
+
+    public static PaginatedResponse<TodoDto> getAllByTitleAndImportanceAndUrgency() {
+        return new PaginatedResponse<>(List.of(
                 TodoDto.builder()
                         .id(1L)
                         .title(Title.STUDY)
@@ -322,23 +280,10 @@ public class Utils {
                         .urgency(Urgency.URGENT)
                         .deadline(LocalDate.now().plusWeeks(1))
                         .build()),
-                2, 1, 3);
-    }
-
-    public static PaginatedResponse<TodoDto> getAllByFiltersOption4() {
-        return new PaginatedResponse<>(List.of(TodoDto.builder()
-                .id(1L)
-                .title(Title.STUDY)
-                .description("Выполнить задачу")
-                .status(Status.NEW)
-                .importance(Importance.IMPORTANT)
-                .urgency(Urgency.URGENT)
-                .deadline(LocalDate.now().plusWeeks(1))
-                .build()),
                 1, 1, 3);
     }
 
-    public static PaginatedResponse<TodoDto> getAllByFiltersOption5() {
+    public static PaginatedResponse<TodoDto> getAllByTitleAndImportanceAndUrgencyAndDeadline() {
         return new PaginatedResponse<>(List.of(), 0, 1, 3);
     }
 

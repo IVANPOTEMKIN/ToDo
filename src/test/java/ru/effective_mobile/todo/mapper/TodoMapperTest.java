@@ -53,7 +53,7 @@ class TodoMapperTest {
         CreateOrUpdateDto dto = new CreateOrUpdateDto("New description");
 
         Todo expected = Todo.builder()
-                .id(0L)
+                .id(null)
                 .createdAt(null)
                 .title(null)
                 .description("New description")

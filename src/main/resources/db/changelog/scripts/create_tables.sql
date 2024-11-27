@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS todo
     status      VARCHAR(255) CHECK (status IN ('NEW',
                                                'IN_PROGRESS',
                                                'COMPLETED',
-                                               'CANCELLED'))        DEFAULT 'NEW',
+                                               'CANCELLED'))       DEFAULT 'NEW',
     importance  VARCHAR(255) CHECK (importance IN ('IMPORTANT',
                                                    'UNIMPORTANT')) DEFAULT 'UNIMPORTANT',
     urgency     VARCHAR(255) CHECK (urgency IN ('URGENT',
