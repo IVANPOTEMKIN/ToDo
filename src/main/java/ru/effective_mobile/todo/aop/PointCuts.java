@@ -7,8 +7,4 @@ public class PointCuts {
     @Pointcut("execution(* ru.effective_mobile.todo.service.impl.TodoServiceImpl.*(..))")
     public void serviceLayerExecution() {
     }
-
-    @Pointcut("execution(* ru.effective_mobile.todo.repository.HibernateTodoRepository.*(..))")
-    public void repositoryLayerExecution() {
-    }
 }

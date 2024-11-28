@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +21,8 @@ import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
 import ru.effective_mobile.todo.repository.TodoRepository;
 import ru.effective_mobile.todo.service.TodoService;
+import ru.effective_mobile.todo.specification.TodoFilter;
+import ru.effective_mobile.todo.specification.TodoSpecification;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -32,8 +36,10 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public PaginatedResponse<TodoDto> getAll(int page, int size) {
-        var todos = todoRepository.findAll(page, size);
-        return mapPaginatedResponse(todos);
+        var pageable = PageRequest.of(page - 1, size);
+        var todos = todoRepository.findAll(pageable);
+
+        return mapPaginatedResponse(todos, page, size);
     }
 
     @Override
@@ -44,14 +50,27 @@ public class TodoServiceImpl implements TodoService {
                                                       LocalDate deadline,
                                                       int page, int size) {
 
-        var todos = todoRepository.findAllByFilters(title, status, importance, urgency, deadline, page, size);
-        return mapPaginatedResponse(todos);
+        var filter = TodoFilter.builder()
+                .title(title)
+                .status(status)
+                .importance(importance)
+                .urgency(urgency)
+                .deadline(deadline)
+                .build();
+
+        var specification = new TodoSpecification(filter);
+        var pageable = PageRequest.of(page - 1, size);
+        var todos = todoRepository.findAll(specification, pageable);
+
+        return mapPaginatedResponse(todos, page, size);
     }
 
     @Cacheable(value = "todos", key = "#id")
     @Override
     public TodoDto getById(long id) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         return TodoMapper.INSTANCE.entityToDto(todo);
     }
 
@@ -74,9 +93,13 @@ public class TodoServiceImpl implements TodoService {
     @Transactional
     @Override
     public void updateDescription(long id, CreateOrUpdateDto dto) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
-        Optional.ofNullable(dto.description()).ifPresent(todo::setDescription);
-        todoRepository.update(todo);
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
+        Optional.ofNullable(dto.description())
+                .ifPresent(todo::setDescription);
+
+        todoRepository.save(todo);
     }
 
     @CachePut(value = "todos", key = "#id")
@@ -89,16 +112,21 @@ public class TodoServiceImpl implements TodoService {
                               Urgency urgency,
                               LocalDate deadline) {
 
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         setExistingFields(title, status, importance, urgency, deadline, todo);
-        todoRepository.update(todo);
+
+        todoRepository.save(todo);
     }
 
     @CacheEvict(value = "todos", key = "#id")
     @Transactional
     @Override
     public void deleteById(long id) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         todoRepository.delete(todo);
     }
 
@@ -113,7 +141,14 @@ public class TodoServiceImpl implements TodoService {
     @Transactional
     @Override
     public void deleteAllByFilters(Title title, Status status) {
-        todoRepository.deleteAllByFilters(title, status);
+        var filter = TodoFilter.builder()
+                .title(title)
+                .status(status)
+                .build();
+
+        var specification = new TodoSpecification(filter);
+
+        todoRepository.delete(specification);
     }
 
     /**
@@ -141,20 +176,21 @@ public class TodoServiceImpl implements TodoService {
     }
 
     /**
-     * Преобразует PaginatedResponse<Todo> в PaginatedResponse<TodoDto>.
+     * Преобразует Page<Todo> в PaginatedResponse<TodoDto>.
      *
-     * @param paginatedResponse объект PaginatedResponse<Todo> для преобразования
+     * @param todoPage объект Page<Todo> для преобразования
+     * @param page     номер страницы
+     * @param size     количество задач на странице
      * @return объект PaginatedResponse<TodoDto>
      */
-    private PaginatedResponse<TodoDto> mapPaginatedResponse(PaginatedResponse<Todo> paginatedResponse) {
+    private PaginatedResponse<TodoDto> mapPaginatedResponse(Page<Todo> todoPage,
+                                                            int page, int size) {
+
         return new PaginatedResponse<>(
-                paginatedResponse.getItems()
-                        .stream()
+                todoPage.getContent().stream()
                         .map(TodoMapper.INSTANCE::entityToDto)
                         .toList(),
-                paginatedResponse.getTotalElements(),
-                paginatedResponse.getCurrentPage(),
-                paginatedResponse.getPageSize()
-        );
+                todoPage.getTotalElements(),
+                page, size);
     }
 }

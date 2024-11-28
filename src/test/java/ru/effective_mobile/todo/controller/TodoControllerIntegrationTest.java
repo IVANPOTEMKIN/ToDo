@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.effective_mobile.todo.Utils;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.exception.TodoNotFoundException;
 import ru.effective_mobile.todo.model.enums.Importance;
@@ -28,6 +27,7 @@ import ru.effective_mobile.todo.model.enums.Urgency;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static ru.effective_mobile.todo.utils.UtilsForIntegrationTests.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,7 +54,7 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Получение всех задач - успешно")
     void test_getAll_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAll());
+        var response = objectMapper.writeValueAsString(getAll());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all")
@@ -95,7 +95,7 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Получение всех задач без фильтров")
     void test_getAllByFilters_withoutFilters_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAll());
+        var response = objectMapper.writeValueAsString(getAll());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -111,7 +111,7 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Получение всех задач по title")
     void test_getAllByFilters_withTitle_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAllByTitle());
+        var response = objectMapper.writeValueAsString(getAllByTitle());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -126,9 +126,9 @@ class TodoControllerIntegrationTest {
 
     @Test
     @Transactional
-    @DisplayName("Получение всех задач по title, importance")
-    void test_getAllByFilters_withTitleAndImportance_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportance());
+    @DisplayName("Получение всех задач по title, status")
+    void test_getAllByFilters_withTitleAndStatus_success() throws Exception {
+        var response = objectMapper.writeValueAsString(getAllByTitleAndStatus());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -144,9 +144,9 @@ class TodoControllerIntegrationTest {
 
     @Test
     @Transactional
-    @DisplayName("Получение всех задач по title, importance, urgency")
-    void test_getAllByFilters_withTitleAndImportanceAndUrgency_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportanceAndUrgency());
+    @DisplayName("Получение всех задач по title, status, importance, urgency")
+    void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgency_success() throws Exception {
+        var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgency());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -164,9 +164,9 @@ class TodoControllerIntegrationTest {
 
     @Test
     @Transactional
-    @DisplayName("Получение всех задач по title, importance, urgency, deadline")
-    void test_getAllByFilters_withTitleAndImportanceAndUrgencyAndDeadline_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getAllByTitleAndImportanceAndUrgencyAndDeadline());
+    @DisplayName("Получение всех задач по title, status, importance, urgency, deadline")
+    void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgencyAndDeadline_success() throws Exception {
+        var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -211,7 +211,7 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Получение задачи по её ID - успешно")
     void test_getById_success() throws Exception {
-        String response = objectMapper.writeValueAsString(Utils.getById());
+        var response = objectMapper.writeValueAsString(getById());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/{id}", 10))
@@ -251,9 +251,9 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Создание новой задачи с дефолтными значениями - успешно")
     void test_creat_success_option1() throws Exception {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("Test description");
+        var dto = new CreateOrUpdateDto("Test description");
 
-        String request = objectMapper.writeValueAsString(dto);
+        var request = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/todo")
@@ -266,9 +266,9 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Создание новой задачи с заданными значениями - успешно")
     void test_creat_success_option2() throws Exception {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("Test description");
+        var dto = new CreateOrUpdateDto("Test description");
 
-        String request = objectMapper.writeValueAsString(dto);
+        var request = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/todo")
@@ -286,11 +286,11 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Создание новой задачи - ошибка")
     void test_creat_exception() throws Exception {
-        CreateOrUpdateDto empty = new CreateOrUpdateDto("");
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("Test description");
+        var empty = new CreateOrUpdateDto("");
+        var dto = new CreateOrUpdateDto("Test description");
 
-        String request1 = objectMapper.writeValueAsString(empty);
-        String request2 = objectMapper.writeValueAsString(dto);
+        var request1 = objectMapper.writeValueAsString(empty);
+        var request2 = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/todo")
@@ -318,9 +318,9 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Изменение описания задачи по её ID - успешно")
     void test_updateDescription_success() throws Exception {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("New test description");
+        var dto = new CreateOrUpdateDto("New test description");
 
-        String request = objectMapper.writeValueAsString(dto);
+        var request = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .patch("/todo/{id}/description", 10)
@@ -333,9 +333,9 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Изменение описания задачи по её ID - ошибка")
     void test_updateDescription_NotFoundException() throws Exception {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("New test description");
+        var dto = new CreateOrUpdateDto("New test description");
 
-        String request = objectMapper.writeValueAsString(dto);
+        var request = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .patch("/todo/{id}/description", 20)
@@ -352,11 +352,11 @@ class TodoControllerIntegrationTest {
     @Transactional
     @DisplayName("Изменение описания задачи по её ID - ошибка")
     void test_updateDescription_BadRequestException() throws Exception {
-        CreateOrUpdateDto empty = new CreateOrUpdateDto("");
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("New test description");
+        var empty = new CreateOrUpdateDto("");
+        var dto = new CreateOrUpdateDto("New test description");
 
-        String request1 = objectMapper.writeValueAsString(dto);
-        String request2 = objectMapper.writeValueAsString(empty);
+        var request1 = objectMapper.writeValueAsString(dto);
+        var request2 = objectMapper.writeValueAsString(empty);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .patch("/todo/{id}/description", 0)

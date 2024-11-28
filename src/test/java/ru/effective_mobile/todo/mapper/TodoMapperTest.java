@@ -20,7 +20,7 @@ class TodoMapperTest {
     @Test
     @DisplayName("Маппинг сущности в дто")
     void test_entityToDto() {
-        Todo todo = Todo.builder()
+        var todo = Todo.builder()
                 .id(1L)
                 .createdAt(LocalDate.now())
                 .title(Title.STUDY)
@@ -31,7 +31,7 @@ class TodoMapperTest {
                 .deadline(LocalDate.now().plusWeeks(1L))
                 .build();
 
-        TodoDto expected = TodoDto.builder()
+        var expected = TodoDto.builder()
                 .id(1L)
                 .title(Title.STUDY)
                 .description("Description")
@@ -41,7 +41,7 @@ class TodoMapperTest {
                 .deadline(LocalDate.now().plusWeeks(1L))
                 .build();
 
-        TodoDto actual = TodoMapper.INSTANCE.entityToDto(todo);
+        var actual = TodoMapper.INSTANCE.entityToDto(todo);
 
         assertNotNull(actual);
         assertEquals(expected, actual);
@@ -50,9 +50,9 @@ class TodoMapperTest {
     @Test
     @DisplayName("Маппинг дто в сущность")
     void test_dtoToEntity() {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("New description");
+        var dto = new CreateOrUpdateDto("New description");
 
-        Todo expected = Todo.builder()
+        var expected = Todo.builder()
                 .id(null)
                 .createdAt(null)
                 .title(null)
@@ -63,7 +63,7 @@ class TodoMapperTest {
                 .deadline(null)
                 .build();
 
-        Todo actual = TodoMapper.INSTANCE.dtoToEntity(dto);
+        var actual = TodoMapper.INSTANCE.dtoToEntity(dto);
 
         assertNotNull(actual);
         assertEquals(expected, actual);
