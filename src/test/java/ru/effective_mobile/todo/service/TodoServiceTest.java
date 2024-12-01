@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.exception.TodoNotFoundException;
 import ru.effective_mobile.todo.model.Todo;
@@ -14,22 +13,22 @@ import ru.effective_mobile.todo.model.enums.Importance;
 import ru.effective_mobile.todo.model.enums.Status;
 import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
-import ru.effective_mobile.todo.repository.TodoRepository;
+import ru.effective_mobile.todo.repository.HibernateTodoRepository;
 import ru.effective_mobile.todo.service.impl.TodoServiceImpl;
-import ru.effective_mobile.todo.specification.TodoSpecification;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
-import static ru.effective_mobile.todo.utils.UtilsForUnitTests.*;
+import static ru.effective_mobile.todo.utils.Utils.*;
 
 @ExtendWith(MockitoExtension.class)
 class TodoServiceTest {
 
     @Mock
-    private TodoRepository todoRepository;
+    private HibernateTodoRepository todoRepository;
 
     @InjectMocks
     private TodoServiceImpl todoService;
@@ -39,24 +38,29 @@ class TodoServiceTest {
     void test_getAll() {
         var expected = getAll();
 
-        when(todoRepository.findAll(any(Pageable.class)))
+        when(todoRepository.findAll(anyInt(), anyInt()))
                 .thenReturn(findAll());
 
-        var actual = todoService.getAll(1, 3);
+        var actual = todoService.getAll(anyInt(), anyInt());
 
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(Pageable.class));
+                .findAll(anyInt(), anyInt());
     }
 
     @Test
     @DisplayName("Получение всех задач без фильтров")
     void test_getAllByFilters_withoutFilters() {
-        var expected = getAll();
+        var expected = getAllWithoutFilters();
 
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAll());
+        when(todoRepository.findAllByFilters(
+                null,
+                null,
+                null,
+                null,
+                null,
+                1, 3)).thenReturn(findAllWithoutFilters());
 
         var actual = todoService.getAllByFilters(
                 null,
@@ -69,7 +73,13 @@ class TodoServiceTest {
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(TodoSpecification.class), any(Pageable.class));
+                .findAllByFilters(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        1, 3);
     }
 
     @Test
@@ -77,8 +87,13 @@ class TodoServiceTest {
     void test_getAllByFilters_withTitle() {
         var expected = getAllByTitle();
 
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAllByTitle());
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                null,
+                null,
+                null,
+                null,
+                1, 3)).thenReturn(findAllByTitle());
 
         var actual = todoService.getAllByFilters(
                 Title.STUDY,
@@ -91,7 +106,13 @@ class TodoServiceTest {
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(TodoSpecification.class), any(Pageable.class));
+                .findAllByFilters(
+                        Title.STUDY,
+                        null,
+                        null,
+                        null,
+                        null,
+                        1, 3);
     }
 
     @Test
@@ -99,7 +120,13 @@ class TodoServiceTest {
     void test_getAllByFilters_withTitleAndStatus() {
         var expected = getAllByTitleAndStatus();
 
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                Status.IN_PROGRESS,
+                null,
+                null,
+                null,
+                1, 3))
                 .thenReturn(findAllByTitleAndStatus());
 
         var actual = todoService.getAllByFilters(
@@ -113,7 +140,13 @@ class TodoServiceTest {
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(TodoSpecification.class), any(Pageable.class));
+                .findAllByFilters(
+                        Title.STUDY,
+                        Status.IN_PROGRESS,
+                        null,
+                        null,
+                        null,
+                        1, 3);
     }
 
     @Test
@@ -121,7 +154,13 @@ class TodoServiceTest {
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgency() {
         var expected = getAllByTitleAndStatusAndImportanceAndUrgency();
 
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                Status.IN_PROGRESS,
+                Importance.IMPORTANT,
+                Urgency.URGENT,
+                null,
+                1, 3))
                 .thenReturn(findAllByTitleAndStatusAndImportanceAndUrgency());
 
         var actual = todoService.getAllByFilters(
@@ -135,7 +174,13 @@ class TodoServiceTest {
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(TodoSpecification.class), any(Pageable.class));
+                .findAllByFilters(
+                        Title.STUDY,
+                        Status.IN_PROGRESS,
+                        Importance.IMPORTANT,
+                        Urgency.URGENT,
+                        null,
+                        1, 3);
     }
 
     @Test
@@ -143,7 +188,13 @@ class TodoServiceTest {
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgencyAndDeadline() {
         var expected = getAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline();
 
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
+        when(todoRepository.findAllByFilters(
+                any(Title.class),
+                any(Status.class),
+                any(Importance.class),
+                any(Urgency.class),
+                any(LocalDate.class),
+                anyInt(), anyInt()))
                 .thenReturn(findAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
 
         var actual = todoService.getAllByFilters(
@@ -157,7 +208,13 @@ class TodoServiceTest {
         assertEquals(expected, actual);
 
         verify(todoRepository, times(1))
-                .findAll(any(TodoSpecification.class), any(Pageable.class));
+                .findAllByFilters(
+                        any(Title.class),
+                        any(Status.class),
+                        any(Importance.class),
+                        any(Urgency.class),
+                        any(LocalDate.class),
+                        anyInt(), anyInt());
     }
 
     @Test
@@ -189,7 +246,7 @@ class TodoServiceTest {
     @Test
     @DisplayName("Создание новой задачи")
     void test_create() {
-        var newTodo = new CreateOrUpdateDto("Test description");
+        var newTodo = new CreateOrUpdateDto("Description");
 
         todoService.create(
                 newTodo,
@@ -206,21 +263,21 @@ class TodoServiceTest {
     @Test
     @DisplayName("Изменение описания задачи по её ID - успешно")
     void test_updateDescription_success() {
-        var newTodo = new CreateOrUpdateDto("Test description");
+        var newTodo = new CreateOrUpdateDto("Updated description");
 
         when(todoRepository.findById(anyLong()))
-                .thenReturn(findById());
+                .thenReturn(Optional.ofNullable(getUpdatedTodo()));
 
-        todoService.updateDescription(1, newTodo);
+        todoService.updateDescription(10, newTodo);
 
         verify(todoRepository, times(1))
-                .save(any(Todo.class));
+                .update(any(Todo.class));
     }
 
     @Test
     @DisplayName("Изменение описания задачи по её ID - ошибка")
     void test_updateDescription_exception() {
-        var newTodo = new CreateOrUpdateDto("Test description");
+        var newTodo = new CreateOrUpdateDto("Updated description");
 
         assertThrows(TodoNotFoundException.class,
                 () -> todoService.updateDescription(1, newTodo));
@@ -244,7 +301,7 @@ class TodoServiceTest {
                 LocalDate.now().plusDays(5));
 
         verify(todoRepository, times(1))
-                .save(any(Todo.class));
+                .update(any(Todo.class));
     }
 
     @Test
@@ -260,7 +317,7 @@ class TodoServiceTest {
                         LocalDate.now().plusDays(5)));
 
         verify(todoRepository, times(0))
-                .save(any(Todo.class));
+                .update(any(Todo.class));
     }
 
     @Test
@@ -300,7 +357,7 @@ class TodoServiceTest {
         todoService.deleteAllByFilters(null, null);
 
         verify(todoRepository, times(1))
-                .delete(any(TodoSpecification.class));
+                .deleteAllByFilters(null, null);
     }
 
     @Test
@@ -309,7 +366,7 @@ class TodoServiceTest {
         todoService.deleteAllByFilters(Title.OTHER, null);
 
         verify(todoRepository, times(1))
-                .delete(any(TodoSpecification.class));
+                .deleteAllByFilters(Title.OTHER, null);
     }
 
     @Test
@@ -318,7 +375,7 @@ class TodoServiceTest {
         todoService.deleteAllByFilters(null, Status.COMPLETED);
 
         verify(todoRepository, times(1))
-                .delete(any(TodoSpecification.class));
+                .deleteAllByFilters(null, Status.COMPLETED);
     }
 
     @Test
@@ -327,6 +384,6 @@ class TodoServiceTest {
         todoService.deleteAllByFilters(Title.OTHER, Status.COMPLETED);
 
         verify(todoRepository, times(1))
-                .delete(any(TodoSpecification.class));
+                .deleteAllByFilters(Title.OTHER, Status.COMPLETED);
     }
 }

@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.dto.TodoDto;
@@ -21,8 +18,6 @@ import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
 import ru.effective_mobile.todo.repository.TodoRepository;
 import ru.effective_mobile.todo.service.TodoService;
-import ru.effective_mobile.todo.specification.TodoFilter;
-import ru.effective_mobile.todo.specification.TodoSpecification;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -36,10 +31,8 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public PaginatedResponse<TodoDto> getAll(int page, int size) {
-        var pageable = PageRequest.of(page - 1, size);
-        var todos = todoRepository.findAll(pageable);
-
-        return mapPaginatedResponse(todos, page, size);
+        var resultList = todoRepository.findAll(page, size);
+        return mapPaginatedResponse(resultList);
     }
 
     @Override
@@ -50,19 +43,8 @@ public class TodoServiceImpl implements TodoService {
                                                       LocalDate deadline,
                                                       int page, int size) {
 
-        var filter = TodoFilter.builder()
-                .title(title)
-                .status(status)
-                .importance(importance)
-                .urgency(urgency)
-                .deadline(deadline)
-                .build();
-
-        var specification = new TodoSpecification(filter);
-        var pageable = PageRequest.of(page - 1, size);
-        var todos = todoRepository.findAll(specification, pageable);
-
-        return mapPaginatedResponse(todos, page, size);
+        var resultList = todoRepository.findAllByFilters(title, status, importance, urgency, deadline, page, size);
+        return mapPaginatedResponse(resultList);
     }
 
     @Cacheable(value = "todos", key = "#id")
@@ -75,7 +57,6 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void create(CreateOrUpdateDto dto,
                        Title title,
@@ -90,7 +71,6 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @CachePut(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void updateDescription(long id, CreateOrUpdateDto dto) {
         var todo = todoRepository.findById(id)
@@ -99,11 +79,10 @@ public class TodoServiceImpl implements TodoService {
         Optional.ofNullable(dto.description())
                 .ifPresent(todo::setDescription);
 
-        todoRepository.save(todo);
+        todoRepository.update(todo);
     }
 
     @CachePut(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void updateFilters(long id,
                               Title title,
@@ -117,11 +96,10 @@ public class TodoServiceImpl implements TodoService {
 
         setExistingFields(title, status, importance, urgency, deadline, todo);
 
-        todoRepository.save(todo);
+        todoRepository.update(todo);
     }
 
     @CacheEvict(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void deleteById(long id) {
         var todo = todoRepository.findById(id)
@@ -131,24 +109,15 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void deleteAll() {
         todoRepository.deleteAll();
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void deleteAllByFilters(Title title, Status status) {
-        var filter = TodoFilter.builder()
-                .title(title)
-                .status(status)
-                .build();
-
-        var specification = new TodoSpecification(filter);
-
-        todoRepository.delete(specification);
+        todoRepository.deleteAllByFilters(title, status);
     }
 
     /**
@@ -178,19 +147,16 @@ public class TodoServiceImpl implements TodoService {
     /**
      * Преобразует Page<Todo> в PaginatedResponse<TodoDto>.
      *
-     * @param todoPage объект Page<Todo> для преобразования
-     * @param page     номер страницы
-     * @param size     количество задач на странице
+     * @param paginatedResponse объект PaginatedResponse<Todo> для преобразования
      * @return объект PaginatedResponse<TodoDto>
      */
-    private PaginatedResponse<TodoDto> mapPaginatedResponse(Page<Todo> todoPage,
-                                                            int page, int size) {
-
+    private PaginatedResponse<TodoDto> mapPaginatedResponse(PaginatedResponse<Todo> paginatedResponse) {
         return new PaginatedResponse<>(
-                todoPage.getContent().stream()
+                paginatedResponse.getItems().stream()
                         .map(TodoMapper.INSTANCE::entityToDto)
                         .toList(),
-                todoPage.getTotalElements(),
-                page, size);
+                paginatedResponse.getTotalElements(),
+                paginatedResponse.getCurrentPage(),
+                paginatedResponse.getPageSize());
     }
 }

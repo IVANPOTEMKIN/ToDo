@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -22,17 +21,15 @@ import ru.effective_mobile.todo.model.enums.Importance;
 import ru.effective_mobile.todo.model.enums.Status;
 import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
-import ru.effective_mobile.todo.repository.TodoRepository;
+import ru.effective_mobile.todo.repository.HibernateTodoRepository;
 import ru.effective_mobile.todo.service.impl.TodoServiceImpl;
-import ru.effective_mobile.todo.specification.TodoSpecification;
 
 import java.time.LocalDate;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ru.effective_mobile.todo.utils.UtilsForUnitTests.*;
+import static ru.effective_mobile.todo.utils.Utils.*;
 
 @WebMvcTest(TodoController.class)
 @EnableTransactionManagement(proxyTargetClass = true)
@@ -42,7 +39,7 @@ public class TodoControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private TodoRepository todoRepository;
+    private HibernateTodoRepository todoRepository;
 
     @MockBean
     private PlatformTransactionManager transactionManager;
@@ -62,7 +59,7 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач - успешно")
     void test_getAll_success() throws Exception {
-        when(todoRepository.findAll(any(Pageable.class)))
+        when(todoRepository.findAll(anyInt(), anyInt()))
                 .thenReturn(findAll());
 
         var response = objectMapper.writeValueAsString(getAll());
@@ -104,10 +101,15 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач без фильтров")
     void test_getAllByFilters_withoutFilters_success() throws Exception {
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAll());
+        when(todoRepository.findAllByFilters(
+                null,
+                null,
+                null,
+                null,
+                null,
+                1, 3)).thenReturn(findAllWithoutFilters());
 
-        var response = objectMapper.writeValueAsString(getAll());
+        var response = objectMapper.writeValueAsString(getAllWithoutFilters());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/todo/all/filters")
@@ -122,8 +124,13 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач по title")
     void test_getAllByFilters_withTitle_success() throws Exception {
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAllByTitle());
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                null,
+                null,
+                null,
+                null,
+                1, 3)).thenReturn(findAllByTitle());
 
         var response = objectMapper.writeValueAsString(getAllByTitle());
 
@@ -141,8 +148,13 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач по title, status")
     void test_getAllByFilters_withTitleAndStatus_success() throws Exception {
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAllByTitleAndStatus());
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                Status.NEW,
+                null,
+                null,
+                null,
+                1, 3)).thenReturn(findAllByTitleAndStatus());
 
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatus());
 
@@ -161,8 +173,13 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач по title, status, importance, urgency")
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgency_success() throws Exception {
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAllByTitleAndStatusAndImportanceAndUrgency());
+        when(todoRepository.findAllByFilters(
+                Title.STUDY,
+                Status.NEW,
+                Importance.IMPORTANT,
+                Urgency.URGENT,
+                null,
+                1, 3)).thenReturn(findAllByTitleAndStatusAndImportanceAndUrgency());
 
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgency());
 
@@ -183,8 +200,13 @@ public class TodoControllerTest {
     @Test
     @DisplayName("Получение всех задач по title, status, importance, urgency, deadline")
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgencyAndDeadline_success() throws Exception {
-        when(todoRepository.findAll(any(TodoSpecification.class), any(Pageable.class)))
-                .thenReturn(findAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
+        when(todoRepository.findAllByFilters(
+                any(Title.class),
+                any(Status.class),
+                any(Importance.class),
+                any(Urgency.class),
+                any(LocalDate.class),
+                anyInt(), anyInt())).thenReturn(findAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
 
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
 

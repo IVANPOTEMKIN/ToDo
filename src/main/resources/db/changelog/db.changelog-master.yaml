@@ -1,5 +1,5 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/scripts/create_tables.sql
+      file: db/changelog/scripts/create_table.sql
   - include:
       file: db/changelog/scripts/insert_values.sql
