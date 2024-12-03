@@ -5,7 +5,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.dto.TodoDto;
@@ -32,8 +31,8 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public PaginatedResponse<TodoDto> getAll(int page, int size) {
-        var todos = todoRepository.findAll(page, size);
-        return mapPaginatedResponse(todos);
+        var resultList = todoRepository.findAll(page, size);
+        return mapPaginatedResponse(resultList);
     }
 
     @Override
@@ -44,19 +43,20 @@ public class TodoServiceImpl implements TodoService {
                                                       LocalDate deadline,
                                                       int page, int size) {
 
-        var todos = todoRepository.findAllByFilters(title, status, importance, urgency, deadline, page, size);
-        return mapPaginatedResponse(todos);
+        var resultList = todoRepository.findAllByFilters(title, status, importance, urgency, deadline, page, size);
+        return mapPaginatedResponse(resultList);
     }
 
     @Cacheable(value = "todos", key = "#id")
     @Override
     public TodoDto getById(long id) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         return TodoMapper.INSTANCE.entityToDto(todo);
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void create(CreateOrUpdateDto dto,
                        Title title,
@@ -71,16 +71,18 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @CachePut(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void updateDescription(long id, CreateOrUpdateDto dto) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
-        Optional.ofNullable(dto.description()).ifPresent(todo::setDescription);
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
+        Optional.ofNullable(dto.description())
+                .ifPresent(todo::setDescription);
+
         todoRepository.update(todo);
     }
 
     @CachePut(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void updateFilters(long id,
                               Title title,
@@ -89,28 +91,30 @@ public class TodoServiceImpl implements TodoService {
                               Urgency urgency,
                               LocalDate deadline) {
 
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         setExistingFields(title, status, importance, urgency, deadline, todo);
+
         todoRepository.update(todo);
     }
 
     @CacheEvict(value = "todos", key = "#id")
-    @Transactional
     @Override
     public void deleteById(long id) {
-        var todo = todoRepository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+        var todo = todoRepository.findById(id)
+                .orElseThrow(() -> new TodoNotFoundException(id));
+
         todoRepository.delete(todo);
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void deleteAll() {
         todoRepository.deleteAll();
     }
 
     @CacheEvict(value = "todos", allEntries = true)
-    @Transactional
     @Override
     public void deleteAllByFilters(Title title, Status status) {
         todoRepository.deleteAllByFilters(title, status);
@@ -141,20 +145,18 @@ public class TodoServiceImpl implements TodoService {
     }
 
     /**
-     * Преобразует PaginatedResponse<Todo> в PaginatedResponse<TodoDto>.
+     * Преобразует Page<Todo> в PaginatedResponse<TodoDto>.
      *
      * @param paginatedResponse объект PaginatedResponse<Todo> для преобразования
      * @return объект PaginatedResponse<TodoDto>
      */
     private PaginatedResponse<TodoDto> mapPaginatedResponse(PaginatedResponse<Todo> paginatedResponse) {
         return new PaginatedResponse<>(
-                paginatedResponse.getItems()
-                        .stream()
+                paginatedResponse.getItems().stream()
                         .map(TodoMapper.INSTANCE::entityToDto)
                         .toList(),
                 paginatedResponse.getTotalElements(),
                 paginatedResponse.getCurrentPage(),
-                paginatedResponse.getPageSize()
-        );
+                paginatedResponse.getPageSize());
     }
 }

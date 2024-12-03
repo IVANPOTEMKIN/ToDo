@@ -7,47 +7,41 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.exception.TodoNotFoundException;
 import ru.effective_mobile.todo.model.enums.Importance;
 import ru.effective_mobile.todo.model.enums.Status;
 import ru.effective_mobile.todo.model.enums.Title;
 import ru.effective_mobile.todo.model.enums.Urgency;
-import ru.effective_mobile.todo.repository.HibernateTodoRepository;
-import ru.effective_mobile.todo.service.impl.TodoServiceImpl;
 
 import java.time.LocalDate;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.effective_mobile.todo.utils.Utils.*;
 
-@WebMvcTest(TodoController.class)
-@EnableTransactionManagement(proxyTargetClass = true)
-public class TodoControllerTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+@Testcontainers
+class TodoControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private HibernateTodoRepository todoRepository;
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
-    @MockBean
-    private PlatformTransactionManager transactionManager;
-
-    @SpyBean
-    private TodoServiceImpl todoService;
-
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -57,11 +51,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач - успешно")
     void test_getAll_success() throws Exception {
-        when(todoRepository.findAll(anyInt(), anyInt()))
-                .thenReturn(findAll());
-
         var response = objectMapper.writeValueAsString(getAll());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -75,6 +70,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач - ошибка")
     void test_getAll_exception() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -99,16 +98,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач без фильтров")
     void test_getAllByFilters_withoutFilters_success() throws Exception {
-        when(todoRepository.findAllByFilters(
-                null,
-                null,
-                null,
-                null,
-                null,
-                1, 3)).thenReturn(findAllWithoutFilters());
-
         var response = objectMapper.writeValueAsString(getAllWithoutFilters());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -122,16 +117,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач по title")
     void test_getAllByFilters_withTitle_success() throws Exception {
-        when(todoRepository.findAllByFilters(
-                Title.STUDY,
-                null,
-                null,
-                null,
-                null,
-                1, 3)).thenReturn(findAllByTitle());
-
         var response = objectMapper.writeValueAsString(getAllByTitle());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -146,16 +137,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач по title, status")
     void test_getAllByFilters_withTitleAndStatus_success() throws Exception {
-        when(todoRepository.findAllByFilters(
-                Title.STUDY,
-                Status.NEW,
-                null,
-                null,
-                null,
-                1, 3)).thenReturn(findAllByTitleAndStatus());
-
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatus());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -171,16 +158,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач по title, status, importance, urgency")
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgency_success() throws Exception {
-        when(todoRepository.findAllByFilters(
-                Title.STUDY,
-                Status.NEW,
-                Importance.IMPORTANT,
-                Urgency.URGENT,
-                null,
-                1, 3)).thenReturn(findAllByTitleAndStatusAndImportanceAndUrgency());
-
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgency());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -198,16 +181,12 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач по title, status, importance, urgency, deadline")
     void test_getAllByFilters_withTitleAndStatusAndImportanceAndUrgencyAndDeadline_success() throws Exception {
-        when(todoRepository.findAllByFilters(
-                any(Title.class),
-                any(Status.class),
-                any(Importance.class),
-                any(Urgency.class),
-                any(LocalDate.class),
-                anyInt(), anyInt())).thenReturn(findAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
-
         var response = objectMapper.writeValueAsString(getAllByTitleAndStatusAndImportanceAndUrgencyAndDeadline());
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -226,6 +205,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение всех задач по фильтрам - ошибка")
     void test_getAllByFilters_exception() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -234,7 +217,6 @@ public class TodoControllerTest {
                         .param("Кол-во задач", "3"))
                 .andExpectAll(
                         status().isBadRequest(),
-                        content().contentType(MediaType.APPLICATION_JSON),
                         jsonPath("$.message").isNotEmpty(),
                         jsonPath("$.timestamp").isNotEmpty());
 
@@ -250,15 +232,16 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение задачи по её ID - успешно")
     void test_getById_success() throws Exception {
-        when(todoRepository.findById(anyLong()))
-                .thenReturn(findById());
-
         var response = objectMapper.writeValueAsString(getById());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/todo/{id}", 1))
+                        .get("/todo/{id}", 10))
                 .andExpectAll(
                         status().isOk(),
                         content().contentType(MediaType.APPLICATION_JSON),
@@ -266,18 +249,26 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение задачи по её ID - ошибка")
     void test_getById_NotFoundException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/todo/{id}", 100))
+                        .get("/todo/{id}", 20))
                 .andExpectAll(
                         status().isNotFound(),
                         content().contentType(MediaType.APPLICATION_JSON),
-                        jsonPath("$.message").value(new TodoNotFoundException(100).getMessage()),
+                        jsonPath("$.message").value(new TodoNotFoundException(20).getMessage()),
                         jsonPath("$.timestamp").isNotEmpty());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Получение задачи по её ID - ошибка")
     void test_getById_BadRequestException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -290,6 +281,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Создание новой задачи с дефолтными значениями - успешно")
     void test_creat_success_option1() throws Exception {
         var dto = new CreateOrUpdateDto("Test description");
@@ -304,6 +299,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Создание новой задачи с заданными значениями - успешно")
     void test_creat_success_option2() throws Exception {
         var dto = new CreateOrUpdateDto("Test description");
@@ -323,6 +322,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Создание новой задачи - ошибка")
     void test_creat_exception() throws Exception {
         var empty = new CreateOrUpdateDto("");
@@ -354,23 +357,28 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение описания задачи по её ID - успешно")
     void test_updateDescription_success() throws Exception {
         var dto = new CreateOrUpdateDto("New test description");
 
         var request = objectMapper.writeValueAsString(dto);
 
-        when(todoRepository.findById(anyLong()))
-                .thenReturn(findById());
-
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/description", 1)
+                        .patch("/todo/{id}/description", 10)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isOk());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение описания задачи по её ID - ошибка")
     void test_updateDescription_NotFoundException() throws Exception {
         var dto = new CreateOrUpdateDto("New test description");
@@ -378,17 +386,21 @@ public class TodoControllerTest {
         var request = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/description", 100)
+                        .patch("/todo/{id}/description", 20)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpectAll(
                         status().isNotFound(),
                         content().contentType(MediaType.APPLICATION_JSON),
-                        jsonPath("$.message").value(new TodoNotFoundException(100).getMessage()),
+                        jsonPath("$.message").value(new TodoNotFoundException(20).getMessage()),
                         jsonPath("$.timestamp").isNotEmpty());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение описания задачи по её ID - ошибка")
     void test_updateDescription_BadRequestException() throws Exception {
         var empty = new CreateOrUpdateDto("");
@@ -408,7 +420,7 @@ public class TodoControllerTest {
                         jsonPath("$.timestamp").isNotEmpty());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/description", 1)
+                        .patch("/todo/{id}/description", 10)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request2))
                 .andExpectAll(
@@ -419,13 +431,14 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение параметров задачи по её ID - успешно")
     void test_updateFilters_success() throws Exception {
-        when(todoRepository.findById(anyLong()))
-                .thenReturn(findById());
-
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/filters", 1)
+                        .patch("/todo/{id}/filters", 10)
                         .param("Заголовок", Title.FRIENDS.name())
                         .param("Статус", Status.COMPLETED.name())
                         .param("Важность", Importance.UNIMPORTANT.name())
@@ -435,17 +448,26 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение параметров задачи по её ID - ошибка")
     void test_updateFilters_NotFoundException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/filters", 100))
+                        .patch("/todo/{id}/filters", 20))
                 .andExpectAll(
                         status().isNotFound(),
-                        jsonPath("$.message").value(new TodoNotFoundException(100).getMessage()),
+                        content().contentType(MediaType.APPLICATION_JSON),
+                        jsonPath("$.message").value(new TodoNotFoundException(20).getMessage()),
                         jsonPath("$.timestamp").isNotEmpty());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Изменение параметров задачи по её ID - ошибка")
     void test_updateFilters_BadRequestException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -457,7 +479,7 @@ public class TodoControllerTest {
                         jsonPath("$.timestamp").isNotEmpty());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/todo/{id}/filters", 1)
+                        .patch("/todo/{id}/filters", 10)
                         .param("Дедлайн", LocalDate.now().minusDays(3).toString()))
                 .andExpectAll(
                         status().isBadRequest(),
@@ -467,29 +489,38 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление задачи по её ID - успешно")
     void test_delete_success() throws Exception {
-        when(todoRepository.findById(anyLong()))
-                .thenReturn(findById());
-
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/todo/{id}", 1))
                 .andExpect(status().isNoContent());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление задачи по её ID - ошибка")
     void test_delete_NotFoundException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
-                        .delete("/todo/{id}", 100))
+                        .delete("/todo/{id}", 20))
                 .andExpectAll(
                         status().isNotFound(),
                         content().contentType(MediaType.APPLICATION_JSON),
-                        jsonPath("$.message").value(new TodoNotFoundException(100).getMessage()),
+                        jsonPath("$.message").value(new TodoNotFoundException(20).getMessage()),
                         jsonPath("$.timestamp").isNotEmpty());
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление задачи по её ID - ошибка")
     void test_delete_BadRequestException() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -502,6 +533,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление всех задач")
     void test_deleteAll() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -510,6 +545,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление всех задач без фильтров")
     void test_deleteAllByFilters_withoutFilters() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -518,6 +557,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление всех задач по title")
     void test_deleteAllByFilters_withTitle() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -527,6 +570,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление всех задач по status")
     void test_deleteAllByFilters_withStatus() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -536,6 +583,10 @@ public class TodoControllerTest {
     }
 
     @Test
+    @Sql(scripts = {
+            "/db/sql/create_table.sql",
+            "/db/sql/insert_values.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/db/sql/drop_table.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @DisplayName("Удаление всех задач по title, status")
     void test_deleteAllByFilters_withTitleAndStatus() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders

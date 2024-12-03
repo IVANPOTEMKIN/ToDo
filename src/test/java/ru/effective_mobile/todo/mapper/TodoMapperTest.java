@@ -1,5 +1,6 @@
 package ru.effective_mobile.todo.mapper;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.effective_mobile.todo.dto.CreateOrUpdateDto;
 import ru.effective_mobile.todo.dto.TodoDto;
@@ -17,8 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class TodoMapperTest {
 
     @Test
-    void testEntityToDto() {
-        Todo todo = Todo.builder()
+    @DisplayName("Маппинг сущности в дто")
+    void test_entityToDto() {
+        var todo = Todo.builder()
                 .id(1L)
                 .createdAt(LocalDate.now())
                 .title(Title.STUDY)
@@ -29,7 +31,7 @@ class TodoMapperTest {
                 .deadline(LocalDate.now().plusWeeks(1L))
                 .build();
 
-        TodoDto expected = TodoDto.builder()
+        var expected = TodoDto.builder()
                 .id(1L)
                 .title(Title.STUDY)
                 .description("Description")
@@ -39,18 +41,19 @@ class TodoMapperTest {
                 .deadline(LocalDate.now().plusWeeks(1L))
                 .build();
 
-        TodoDto actual = TodoMapper.INSTANCE.entityToDto(todo);
+        var actual = TodoMapper.INSTANCE.entityToDto(todo);
 
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
 
     @Test
-    void testDtoToEntity() {
-        CreateOrUpdateDto dto = new CreateOrUpdateDto("New description");
+    @DisplayName("Маппинг дто в сущность")
+    void test_dtoToEntity() {
+        var dto = new CreateOrUpdateDto("New description");
 
-        Todo expected = Todo.builder()
-                .id(0L)
+        var expected = Todo.builder()
+                .id(null)
                 .createdAt(null)
                 .title(null)
                 .description("New description")
@@ -60,7 +63,7 @@ class TodoMapperTest {
                 .deadline(null)
                 .build();
 
-        Todo actual = TodoMapper.INSTANCE.dtoToEntity(dto);
+        var actual = TodoMapper.INSTANCE.dtoToEntity(dto);
 
         assertNotNull(actual);
         assertEquals(expected, actual);

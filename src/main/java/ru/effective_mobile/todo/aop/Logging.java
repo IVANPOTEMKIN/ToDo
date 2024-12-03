@@ -11,8 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class Logging {
 
-    @Around("ru.effective_mobile.todo.aop.PointCuts.serviceLayerExecution()"
-            + "|| ru.effective_mobile.todo.aop.PointCuts.repositoryLayerExecution()"
+    @Around(
+            """
+            ru.effective_mobile.todo.aop.PointCuts.serviceLayerExecution()
+            ||
+            ru.effective_mobile.todo.aop.PointCuts.repositoryLayerExecution()
+            """
     )
     public Object logging(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodName = joinPoint.getSignature().getName();
